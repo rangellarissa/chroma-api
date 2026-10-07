@@ -1,16 +1,9 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI
+
+from api.controllers.color_controller import router as color_router
+from api.controllers.color_wheel_controller import router as color_wheel_router
 
 app = FastAPI()
-print('Hello world')
 
-items: dict[int, dict] = {}
-
-class Chroma(BaseModel):
-    code: str
-    name: str
-
-
-@app.post("/chroma-lib", status_code=201)
-def create_chroma(chroma: Chroma):
-    id = len(items)
+app.include_router(color_router)
+app.include_router(color_wheel_router)
