@@ -26,6 +26,6 @@ def get_by_user(user_id: int) -> list:
     return result
 
 def create(data: ColorWheelCreate) -> dict:
-    wheel_id = supabase.rpc("create_color_wheel", {"p_name": data.name, "p_user_id": data.user_id, "p_color_ids": data.color_ids}).execute().data
+    wheel_id = supabase.rpc("create_color_wheel", {"p_name": data.name, "p_user_id": data.user_id, "p_colors_ids": data.color_ids}).execute().data
     response = supabase.table("color_wheel").select(WHEEL_SELECT).eq("id", wheel_id).execute().data[0]
     return _wheel_with_colors(response)
