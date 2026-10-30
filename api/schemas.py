@@ -21,6 +21,10 @@ class ColorWheel(BaseModel):
     colors: list[Color]
     user_id: int
 
+class ColorWheelChange(BaseModel):
+    name: str
+    colors_ids: list[int]
+
 class ColorWheelCreate(BaseModel):
     name: str
     user_id: int

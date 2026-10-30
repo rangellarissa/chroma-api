@@ -1,4 +1,4 @@
-from api.schemas import ColorWheelCreate
+from api.schemas import ColorWheelCreate, ColorWheelChange
 from api.db import supabase
 
 WHEEL_SELECT = "id, name, user_id, color_wheel_color(color_id, position, color(*))"
@@ -26,6 +26,36 @@ def get_by_user(user_id: int) -> list:
     return result
 
 def create(data: ColorWheelCreate) -> dict:
-    wheel_id = supabase.rpc("create_color_wheel", {"p_name": data.name, "p_user_id": data.user_id, "p_color_ids": data.color_ids}).execute().data
+    wheel_id = supabase.rpc("create_color_wheel", {"p_name": data.name, "p_user_id": data.user_id, "p_colors_ids": data.color_ids}).execute().data
     response = supabase.table("color_wheel").select(WHEEL_SELECT).eq("id", wheel_id).execute().data[0]
     return _wheel_with_colors(response)
+
+def change(wheel_id: int, data: ColorWheelChange) -> dict:
+    old_wheel = get(wheel_id)
+    if old_wheel is None:
+        return None
+    
+    if data.name != old_wheel["name"]:
+        supabase.table("color_wheel").update({"name": data.name}).eq("id", wheel_id).execute()
+    
+    rows = supabase.table("color_wheel_color").select("color_id, position").eq("color_wheel_id", wheel_id).execute().data
+    old_by_position = {r["position"]: r["color_id"] for r in rows}
+
+    for position, color_id in enumerate(data.colors_ids):
+        if position not in old_by_position:
+            supabase.table("color_wheel_color").insert(
+                {
+                    "color_wheel_id": wheel_id,
+                    "position": position,
+                    "color_id": color_id,
+                }
+            ).execute()
+        elif old_by_position[position] != color_id:
+            supabase.table("color_wheel_color").update({"color_id": color_id}).eq("color_wheel_id", wheel_id) \
+                .eq("position", position).execute()
+
+    for position in old_by_position:
+        if position >= len(data.colors_ids):
+            supabase.table("color_wheel_color").delete().eq("color_wheel_id", wheel_id).eq("position", position).execute()
+
+    return get(wheel_id)
