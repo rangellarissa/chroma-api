@@ -38,4 +38,4 @@ def delete(color_id: int):
     result = color.delete(color_id)
     if result is None:
         raise HTTPException(404, "color not found")
-    return result
+

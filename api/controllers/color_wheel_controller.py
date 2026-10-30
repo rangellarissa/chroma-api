@@ -31,9 +31,10 @@ def change(wheel_id: int, data: ColorWheelChange):
 
     return result
 
-#@router.delete("/{wheel_id}", response_model=None, status_code=status.HTTP_204_NO_CONTENT)
-#def delete(wheel_id: int):
-#    result = services.delete_color_wheel(wheel_id)
+@router.delete("/{wheel_id}", response_model=None, status_code=status.HTTP_204_NO_CONTENT)
+def delete(wheel_id: int):
+    result = color_wheel.delete(wheel_id)
 
-#    if result is None:
-#        raise HTTPException(404, "color not found")
+    if result is None:
+        raise HTTPException(404, "color wheel not found")
+
