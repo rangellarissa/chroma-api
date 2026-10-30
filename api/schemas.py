@@ -23,7 +23,7 @@ class ColorWheel(BaseModel):
 
 class ColorWheelChange(BaseModel):
     name: str
-    colors_ids: list[int]
+    color_ids: list[int]
 
 class ColorWheelCreate(BaseModel):
     name: str

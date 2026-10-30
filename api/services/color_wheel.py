@@ -15,8 +15,8 @@ def _wheel_with_colors(response: dict) -> dict:
     return result
 
 def get(wheel_id: int) -> dict | None:
-    response = supabase.table("color_wheel").select(WHEEL_SELECT).eq("id", wheel_id).execute().data[0]
-    return _wheel_with_colors(response)
+    response = supabase.table("color_wheel").select(WHEEL_SELECT).eq("id", wheel_id).execute().data
+    return _wheel_with_colors(response[0]) if response else None
 
 def get_by_user(user_id: int) -> list:
     result = []
@@ -26,7 +26,7 @@ def get_by_user(user_id: int) -> list:
     return result
 
 def create(data: ColorWheelCreate) -> dict:
-    wheel_id = supabase.rpc("create_color_wheel", {"p_name": data.name, "p_user_id": data.user_id, "p_colors_ids": data.color_ids}).execute().data
+    wheel_id = supabase.rpc("create_color_wheel", {"p_name": data.name, "p_user_id": data.user_id, "p_color_ids": data.color_ids}).execute().data
     response = supabase.table("color_wheel").select(WHEEL_SELECT).eq("id", wheel_id).execute().data[0]
     return _wheel_with_colors(response)
 
@@ -38,7 +38,7 @@ def change(wheel_id: int, data: ColorWheelChange) -> dict:
     if data.name != old_wheel["name"]:
         supabase.table("color_wheel").update({"name": data.name}).eq("id", wheel_id).execute()
     
-    desired = dict(enumerate(data.colors_ids))
+    desired = dict(enumerate(data.color_ids))
     rows = supabase.table("color_wheel_color").select("color_id, position").eq("color_wheel_id", wheel_id).execute().data
     old = {r["position"]: r["color_id"] for r in rows}
 
