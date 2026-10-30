@@ -38,11 +38,12 @@ def change(wheel_id: int, data: ColorWheelChange) -> dict:
     if data.name != old_wheel["name"]:
         supabase.table("color_wheel").update({"name": data.name}).eq("id", wheel_id).execute()
     
+    desired = dict(enumerate(data.colors_ids))
     rows = supabase.table("color_wheel_color").select("color_id, position").eq("color_wheel_id", wheel_id).execute().data
-    old_by_position = {r["position"]: r["color_id"] for r in rows}
+    old = {r["position"]: r["color_id"] for r in rows}
 
-    for position, color_id in enumerate(data.colors_ids):
-        if position not in old_by_position:
+    for position, color_id in desired.items():
+        if position not in old:
             supabase.table("color_wheel_color").insert(
                 {
                     "color_wheel_id": wheel_id,
@@ -50,12 +51,15 @@ def change(wheel_id: int, data: ColorWheelChange) -> dict:
                     "color_id": color_id,
                 }
             ).execute()
-        elif old_by_position[position] != color_id:
+        elif old[position] != color_id:
             supabase.table("color_wheel_color").update({"color_id": color_id}).eq("color_wheel_id", wheel_id) \
                 .eq("position", position).execute()
 
-    for position in old_by_position:
-        if position >= len(data.colors_ids):
-            supabase.table("color_wheel_color").delete().eq("color_wheel_id", wheel_id).eq("position", position).execute()
+    for position in old.keys() - desired.keys():
+        supabase.table("color_wheel_color").delete().eq("color_wheel_id", wheel_id).eq("position", position).execute()
 
     return get(wheel_id)
+
+def delete(wheel_id: int) -> dict | None:
+    rows = supabase.table("color_wheel").delete().eq("id", wheel_id).execute().data
+    return rows[0] if rows else None
