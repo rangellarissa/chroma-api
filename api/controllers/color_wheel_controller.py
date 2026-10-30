@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from api.schemas import ColorWheel, ColorWheelCreate
+from api.schemas import ColorWheel, ColorWheelCreate, ColorWheelChange
 from api.services import color_wheel
 
 router = APIRouter(prefix="/wheel")
@@ -22,18 +22,14 @@ def create(data: ColorWheelCreate):
     result = color_wheel.create(data)
     return result
 
-#@router.patch("/{color_id}", response_model=Color, status_code=status.HTTP_200_OK)
-#def change(color_id: int, data: ColorChange):
-#    fields = data.model_dump(exclude_unset=True)
-#    if not fields:
-#        raise HTTPException(400, "nothing to update")
+@router.patch("/{wheel_id}", response_model=ColorWheel, status_code=status.HTTP_200_OK)
+def change(wheel_id: int, data: ColorWheelChange):
+    result = color_wheel.change(wheel_id, data)
 
-#    result = services.change_color(color_id, fields)
+    if result is None:
+        raise HTTPException(404, "color wheel not found")
 
-#    if result is None:
-#        raise HTTPException(404, "color not found")
-    
-#    return result
+    return result
 
 #@router.delete("/{wheel_id}", response_model=None, status_code=status.HTTP_204_NO_CONTENT)
 #def delete(wheel_id: int):
